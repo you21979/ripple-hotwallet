@@ -124,24 +124,42 @@ const gettransaction = (sv, req, res) => Promise.resolve().then( () => {
     })
 }).catch(e => res.end(commonerror(e) ))
 
+const get_balance = (sv) => {
+    return sv.cli.balance().then(r => {
+        return r.reduce((r,v)=>{
+            if(v.currency === "XRP"){
+                r[v.currency] = v.value
+            }else{
+                r[v.currency + ":" + v.counterparty] = v.value
+            }
+            return r
+        }, {XRP:"0"})
+    })
+}
+
 const send = (sv, req, res) => Promise.resolve().then( () => {
     accesslog(req)
     const params = JSON.parse(req.rawpost)
     assert(params instanceof Object, "params : must be object")
-
-    return sv.cli.payment(params.address, params.amount, params).then(r => {
-        const fmt = (r) => ({
-            success : 1,
-            result : {
-                txid : r.txid,
-                fee: (r.Fee * 1e-6).toFixed(6),
-                feeDrops: r.Fee,
-                amount : (r.Amount * 1e-6).toFixed(6),
-                amountDrops : r.Amount,
-                raw: r.hex,
-            }
+    return get_balance().then(r => {
+        const xrp = parseFloat(r['XRP']) - 20
+        if(xrp < parseFloat(params.amount)){
+            throw new Error('Insufficient XRP balance to send.')
+        }
+        return sv.cli.payment(params.address, params.amount, params).then(r => {
+            const fmt = (r) => ({
+                success : 1,
+                result : {
+                    txid : r.txid,
+                    fee: (r.Fee * 1e-6).toFixed(6),
+                    feeDrops: r.Fee,
+                    amount : (r.Amount * 1e-6).toFixed(6),
+                    amountDrops : r.Amount,
+                    raw: r.hex,
+                }
+            })
+            res.end(JSON.stringify(fmt(r)));
         })
-        res.end(JSON.stringify(fmt(r)));
     })
 }).catch(e => res.end(commonerror(e) ))
 

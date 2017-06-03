@@ -46,6 +46,10 @@ class RippleCli{
             address : address,
             secret : secret,
         }
+        this.sendparameter = {
+            min_fee : 100,
+            wait_ledger : 5,
+        }
         this.api = createRipple(uri || 'wss://s1.ripple.com:443');
     }
     connect(){
@@ -67,19 +71,30 @@ class RippleCli{
         return this.api.getTransaction(txid)
     }
     payment(address, amount, options){
-        const instructions = {maxLedgerVersionOffset: 5};
-        return this.api.preparePayment(this.wallet.address, createPaymentXRP(this.wallet.address, address, amount, options), instructions).then(prepared => {
-            const sign = this.api.sign(prepared.txJSON, this.wallet.secret);
-            const tx = JSON.parse(prepared.txJSON)
-            tx.txid = sign.id
-            tx.hex = sign.signedTransaction
-            return this.api.submit(sign.signedTransaction).then(res => {
-                if(res.resultCode !== 'tesSUCCESS'){
-                    throw new Error(res.resultMessage)
-                }
-                return tx
-            })
-        });
+        const instructions = {maxLedgerVersionOffset: this.sendparameter.wait_ledger};
+        return this.api.preparePayment(this.wallet.address, createPaymentXRP(this.wallet.address, address, amount, options), instructions).
+            then(prepared => this.onPreparedPayment(prepared))
+            then(prepared => {
+                const sign = this.api.sign(prepared.txJSON, this.wallet.secret);
+                const tx = JSON.parse(prepared.txJSON)
+                tx.txid = sign.id
+                tx.hex = sign.signedTransaction
+                return this.api.submit(sign.signedTransaction).then(res => {
+                    if(res.resultCode !== 'tesSUCCESS'){
+                        throw new Error(res.resultMessage)
+                    }
+                    return tx
+                })
+            });
+    }
+    onPreparedPayment(prepared){
+        const tx = JSON.parse(prepared.txJSON)
+        if(this.sendparameter.min_fee > tx.Fee) tx.Fee = this.sendparameter.min_fee
+        prepared.txJSON = JSON.stringify(tx)
+        return prepared
+    }
+    getFee(){
+        return this.api.getFee()
     }
     getServerInfo(){
         return this.api.getServerInfo()

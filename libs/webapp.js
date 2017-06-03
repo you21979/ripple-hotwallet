@@ -22,6 +22,10 @@ const heartbeat = (ctx) => {
         setTimeout(() => {
             heartbeat(ctx)
         }, 1000 * 60)
+    }).catch(e => {
+        setTimeout(() => {
+            heartbeat(ctx)
+        }, 1000 * 60)    
     })
 }
 
@@ -60,6 +64,19 @@ const getbalance = (sv, req, res) => Promise.resolve().then( () => {
             }
             return r
         }, {XRP:0}))));
+    })
+}).catch(e => res.end(commonerror(e) ))
+
+const getfee = (sv, req, res) => Promise.resolve().then( () => {
+    accesslog(req)
+    return sv.cli.getFee().then(r => {
+        const fmt = (r) => ({
+            success : 1,
+            result : {
+                fee : r,
+            }
+        })
+        res.end(JSON.stringify(fmt(r)));
     })
 }).catch(e => res.end(commonerror(e) ))
 
@@ -154,6 +171,7 @@ const start = exports.start = dirname => {
 
     app.use(connectRoute((router) => {
         router.get('/healthcheck', (req, res, next) => healthcheck(sv, req, res) )
+        router.get('/api/getfee', (req, res, next) => getfee(sv, req, res) )
         router.get('/api/getbalance', (req, res, next) => getbalance(sv, req, res) )
         router.post('/api/getbalance', (req, res, next) => getbalance(sv, req, res) )
         router.get('/api/getaddress', (req, res, next) => getaddress(sv, req, res) )

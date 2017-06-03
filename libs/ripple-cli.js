@@ -47,7 +47,7 @@ class RippleCli{
             secret : secret,
         }
         this.sendparameter = {
-            min_fee : 100,
+            min_fee : 10000,
             wait_ledger : 5,
         }
         this.api = createRipple(uri || 'wss://s1.ripple.com:443');

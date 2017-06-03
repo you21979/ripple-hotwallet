@@ -1,4 +1,4 @@
 {
   "address" : "",
-  "secret" : "",
+  "secret" : ""
 }

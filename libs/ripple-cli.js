@@ -47,7 +47,8 @@ class RippleCli{
             secret : secret,
         }
         this.sendparameter = {
-            min_fee : 10000,
+            //min_fee : 0.012,
+            min_fee : 0.12,
             wait_ledger : 5,
         }
         this.api = createRipple(uri || 'wss://s1.ripple.com:443');
@@ -71,10 +72,14 @@ class RippleCli{
         return this.api.getTransaction(txid)
     }
     payment(address, amount, options){
-        const instructions = {maxLedgerVersionOffset: this.sendparameter.wait_ledger};
-        return this.api.preparePayment(this.wallet.address, createPaymentXRP(this.wallet.address, address, amount, options), instructions).
-            then(prepared => this.onPreparedPayment(prepared))
-            then(prepared => {
+        return this.api.getFee().then(_current_fee => {
+            const current_fee = parseFloat(_current_fee)
+            const instructions = {
+                maxLedgerVersionOffset: this.sendparameter.wait_ledger,
+                fee: (this.sendparameter.min_fee > current_fee ? this.sendparameter.min_fee : current_fee).toFixed(6),
+            };
+console.log(instructions)
+            return this.api.preparePayment(this.wallet.address, createPaymentXRP(this.wallet.address, address, amount, options), instructions).then(prepared => {
                 const sign = this.api.sign(prepared.txJSON, this.wallet.secret);
                 const tx = JSON.parse(prepared.txJSON)
                 tx.txid = sign.id
@@ -86,15 +91,16 @@ class RippleCli{
                     return tx
                 })
             });
+
+        })
     }
-    onPreparedPayment(prepared){
-        const tx = JSON.parse(prepared.txJSON)
-        if(this.sendparameter.min_fee > tx.Fee) tx.Fee = this.sendparameter.min_fee
-        prepared.txJSON = JSON.stringify(tx)
-        return prepared
+    getLedger(){
+        return this.api.getLedger()
     }
     getFee(){
-        return this.api.getFee()
+        return this.api.getFee().then(r => {
+            return parseFloat(r).toFixed(6)
+        })
     }
     getServerInfo(){
         return this.api.getServerInfo()

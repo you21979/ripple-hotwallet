@@ -18,10 +18,10 @@ const initialize = (dirname, ctx) => {
 }
 
 const heartbeat = (ctx) => {
-    ctx.cli.getServerInfo().then(() => {
+    ctx.cli.getLedger().then((r) => {
         setTimeout(() => {
             heartbeat(ctx)
-        }, 1000 * 60)
+        }, 1000 * 10)
     }).catch(e => {
         setTimeout(() => {
             heartbeat(ctx)
@@ -141,7 +141,7 @@ const send = (sv, req, res) => Promise.resolve().then( () => {
     accesslog(req)
     const params = JSON.parse(req.rawpost)
     assert(params instanceof Object, "params : must be object")
-    return get_balance().then(r => {
+    return get_balance(sv).then(r => {
         const xrp = parseFloat(r['XRP']) - 20
         if(xrp < parseFloat(params.amount)){
             throw new Error('Insufficient XRP balance to send.')

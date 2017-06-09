@@ -116,6 +116,7 @@ const gettransaction = (sv, req, res) => Promise.resolve().then( () => {
             success : 1,
             result : {
                 txid : r.id,
+                result : r.outcome.result,
                 time : new Date(r.outcome.timestamp) / 1000 | 0,
                 ledger : r.outcome.ledgerVersion,
             }
@@ -156,6 +157,8 @@ const send = (sv, req, res) => Promise.resolve().then( () => {
                     amount : (r.Amount * 1e-6).toFixed(6),
                     amountDrops : r.Amount,
                     raw: r.hex,
+                    result: r.resultCode,
+                    message: r.resultMessage,
                 }
             })
             res.end(JSON.stringify(fmt(r)));

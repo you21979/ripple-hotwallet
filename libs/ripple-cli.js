@@ -76,15 +76,15 @@ class RippleCli{
             maxLedgerVersionOffset: this.sendparameter.wait_ledger,
             fee: (this.sendparameter.min_fee).toFixed(6),
         };
-        return this.api.preparePayment(this.wallet.address, createPaymentXRP(this.wallet.address, address, amount, options), instructions).then(prepared => {
+        const payment = createPaymentXRP(this.wallet.address, address, amount, options)
+        return this.api.preparePayment(this.wallet.address, payment, instructions).then(prepared => {
             const sign = this.api.sign(prepared.txJSON, this.wallet.secret);
             const tx = JSON.parse(prepared.txJSON)
             tx.txid = sign.id
             tx.hex = sign.signedTransaction
             return this.api.submit(sign.signedTransaction).then(res => {
-                if(res.resultCode !== 'tesSUCCESS'){
-                    throw new Error(res.resultMessage)
-                }
+                tx.resultCode = res.resultCode
+                tx.resultMessage = res.resultMessage
                 return tx
             })
         });

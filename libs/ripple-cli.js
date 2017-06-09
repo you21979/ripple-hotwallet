@@ -83,6 +83,12 @@ class RippleCli{
             tx.txid = sign.id
             tx.hex = sign.signedTransaction
             return this.api.submit(sign.signedTransaction).then(res => {
+                if(res.resultCode.match("tec")){
+                    // tec系はトランザクションがバリデータに拒否されている
+                    // txidがレジャーに記録されている
+                    throw new Error(res.resultMessage)
+                }
+                // どのステータスも成功したかどうかtxidがledgerに含まれているか検査する必要がある
                 tx.resultCode = res.resultCode
                 tx.resultMessage = res.resultMessage
                 return tx

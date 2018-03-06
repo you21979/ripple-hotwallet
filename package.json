@@ -4,27 +4,27 @@
   "version": "4.0.0",
   "private": true,
   "dependencies": {
-    "promise-util-task" : "0.0.*",
-    "log4js" : "0.6.*",
-    "request-ip" : "1.1.*",
-    "semaphore" : "1.0.*",
-    "uuid" : "2.0.*",
-    "connect" : "3.6.*",
-    "connect-route" : "0.1.*",
-    "ripple-lib" : "0.17.*",
-    "moment" : "2.18.*",
-    "crc-32" : "0.3.*"
+    "promise-util-task": "0.0.*",
+    "log4js": "0.6.*",
+    "request-ip": "1.1.*",
+    "semaphore": "1.0.*",
+    "uuid": "2.0.*",
+    "connect": "3.6.*",
+    "connect-route": "0.1.*",
+    "ripple-lib": "0.17.*",
+    "moment": "2.21.*",
+    "crc-32": "0.3.*"
   },
   "readmeFilename": "README.md",
   "description": "",
   "main": "app.js",
   "devDependencies": {
-    "request-promise" : "",
-    "mocha" : "",
-    "power-assert" : ""
+    "request-promise": "",
+    "mocha": "",
+    "power-assert": ""
   },
   "scripts": {
-    "test" : ""
+    "test": ""
   },
   "license": "MIT"
 }
